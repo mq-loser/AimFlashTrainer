@@ -8,7 +8,10 @@ public class TrainingSession : MonoBehaviour
     [Min(1f)]
     public float durationSeconds = 60f;
     public bool autoStartOnPlay = false;
+
+    [Header("Pause")]
     public bool pauseWhenCursorUnlocked = true;
+    public bool freezeTimeScaleWhenPaused = true;
 
     public int shotsFired { get; private set; }
     public int shotsHit { get; private set; }
@@ -20,6 +23,9 @@ public class TrainingSession : MonoBehaviour
     public bool isPaused { get; private set; }
 
     public float accuracy => shotsFired > 0 ? (float)shotsHit / shotsFired : 0f;
+
+    float timeScaleBeforePause = 1f;
+    bool isTimeScaleFrozen;
 
     void Awake()
     {
@@ -41,6 +47,16 @@ public class TrainingSession : MonoBehaviour
         }
     }
 
+    void OnDisable()
+    {
+        RestoreTimeScaleIfNeeded();
+    }
+
+    void OnDestroy()
+    {
+        RestoreTimeScaleIfNeeded();
+    }
+
     void Update()
     {
         if (!isRunning || isPaused || isFinished)
@@ -58,6 +74,7 @@ public class TrainingSession : MonoBehaviour
 
     public void ResetSession()
     {
+        RestoreTimeScaleIfNeeded();
         revision++;
         shotsFired = 0;
         shotsHit = 0;
@@ -75,12 +92,14 @@ public class TrainingSession : MonoBehaviour
             return;
         }
 
+        RestoreTimeScaleIfNeeded();
         isRunning = true;
         isPaused = false;
     }
 
     public void EndSession()
     {
+        RestoreTimeScaleIfNeeded();
         isRunning = false;
         isFinished = true;
         isPaused = false;
@@ -98,7 +117,42 @@ public class TrainingSession : MonoBehaviour
             return;
         }
 
+        if (isPaused == paused)
+        {
+            return;
+        }
+
         isPaused = paused;
+
+        if (!freezeTimeScaleWhenPaused)
+        {
+            return;
+        }
+
+        if (paused)
+        {
+            if (!isTimeScaleFrozen)
+            {
+                timeScaleBeforePause = Time.timeScale;
+                isTimeScaleFrozen = true;
+            }
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            RestoreTimeScaleIfNeeded();
+        }
+    }
+
+    void RestoreTimeScaleIfNeeded()
+    {
+        if (!freezeTimeScaleWhenPaused || !isTimeScaleFrozen)
+        {
+            return;
+        }
+
+        Time.timeScale = timeScaleBeforePause;
+        isTimeScaleFrozen = false;
     }
 
     public void RegisterShot()
