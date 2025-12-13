@@ -12,6 +12,8 @@ public class PlayerController : MonoBehaviour
     float verticalVelocity;
     float cameraPitch;
     bool cursorLocked;
+    bool suppressShootThisFrame;
+    TrainingSession session;
 
     void Start()
     {
@@ -22,11 +24,13 @@ public class PlayerController : MonoBehaviour
             playerCamera = GetComponentInChildren<Camera>();
         }
 
+        session = TrainingSession.Instance;
         SetCursorLock(false);
     }
 
     void Update()
     {
+        suppressShootThisFrame = false;
         HandleCursorLock();
 
         Move();
@@ -54,11 +58,21 @@ public class PlayerController : MonoBehaviour
         if (!cursorLocked && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)))
         {
             SetCursorLock(true);
+            suppressShootThisFrame = true;
         }
 
         if (cursorLocked && Input.GetKeyDown(KeyCode.Escape))
         {
             SetCursorLock(false);
+        }
+
+        if (session != null && session.isFinished && Input.GetKeyDown(KeyCode.R))
+        {
+            session.ResetSession();
+            if (cursorLocked)
+            {
+                session.StartSession();
+            }
         }
     }
 
@@ -67,6 +81,19 @@ public class PlayerController : MonoBehaviour
         cursorLocked = locked;
         Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
         Cursor.visible = !locked;
+
+        if (session != null)
+        {
+            if (locked)
+            {
+                session.StartSession();
+                session.SetPaused(false);
+            }
+            else
+            {
+                session.SetPaused(true);
+            }
+        }
     }
 
     void Look()
@@ -101,14 +128,19 @@ public class PlayerController : MonoBehaviour
 
     void Shoot()
     {
+        if (suppressShootThisFrame) return;
+        if (session != null && (!session.isRunning || session.isPaused || session.isFinished)) return;
         if (!Input.GetButtonDown("Fire1")) return;
 
+        session?.RegisterShot();
+
         Ray ray = playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-        if (Physics.Raycast(ray, out RaycastHit hit, 100f))
+        if (Physics.Raycast(ray, out RaycastHit hit, 100f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide))
         {
             var target = hit.collider.GetComponent<Target>();
             if (target != null)
             {
+                session?.RegisterHit();
                 target.Hit();
             }
         }
