@@ -48,9 +48,10 @@ public class TrainingHUD : MonoBehaviour
             $"Hits: {session.shotsHit}\n" +
             $"Shots: {session.shotsFired}\n" +
             $"Acc: {session.accuracy * 100f:0.0}%\n" +
+            $"Backflash: {session.flashesBack} / {session.flashesTotal} ({session.backFlashRate * 100f:0.0}%)\n" +
             $"Status: {status}";
 
-        var rect = new Rect(12, 12, 220, 120);
+        var rect = new Rect(12, 12, 280, 140);
         GUI.Box(rect, "");
         GUI.Label(new Rect(rect.x + 10, rect.y + 8, rect.width - 20, rect.height - 16), text);
     }
@@ -94,4 +95,3 @@ public class TrainingHUD : MonoBehaviour
         GUI.Label(rect, text, style);
     }
 }
-

@@ -17,12 +17,20 @@ public class TrainingSession : MonoBehaviour
     public int shotsHit { get; private set; }
     public int revision { get; private set; }
 
+    public int flashesTotal { get; private set; }
+    public int flashesFront { get; private set; }
+    public int flashesSide { get; private set; }
+    public int flashesBack { get; private set; }
+    public float lastFlashIntensity01 { get; private set; }
+    public float lastFlashAngleDegrees { get; private set; }
+
     public float timeRemaining { get; private set; }
     public bool isRunning { get; private set; }
     public bool isFinished { get; private set; }
     public bool isPaused { get; private set; }
 
     public float accuracy => shotsFired > 0 ? (float)shotsHit / shotsFired : 0f;
+    public float backFlashRate => flashesTotal > 0 ? (float)flashesBack / flashesTotal : 0f;
 
     float timeScaleBeforePause = 1f;
     bool isTimeScaleFrozen;
@@ -78,6 +86,12 @@ public class TrainingSession : MonoBehaviour
         revision++;
         shotsFired = 0;
         shotsHit = 0;
+        flashesTotal = 0;
+        flashesFront = 0;
+        flashesSide = 0;
+        flashesBack = 0;
+        lastFlashIntensity01 = 0f;
+        lastFlashAngleDegrees = 0f;
 
         timeRemaining = durationSeconds;
         isRunning = false;
@@ -173,5 +187,30 @@ public class TrainingSession : MonoBehaviour
         }
 
         shotsHit++;
+    }
+
+    public void RegisterFlash(FlashExposure exposure, float intensity01, float angleDegrees)
+    {
+        if (!isRunning || isPaused || isFinished)
+        {
+            return;
+        }
+
+        flashesTotal++;
+        switch (exposure)
+        {
+            case FlashExposure.Front:
+                flashesFront++;
+                break;
+            case FlashExposure.Side:
+                flashesSide++;
+                break;
+            case FlashExposure.Back:
+                flashesBack++;
+                break;
+        }
+
+        lastFlashIntensity01 = Mathf.Clamp01(intensity01);
+        lastFlashAngleDegrees = Mathf.Clamp(angleDegrees, 0f, 180f);
     }
 }
