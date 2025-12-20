@@ -162,12 +162,18 @@ public class TargetSpawner : MonoBehaviour
             : GameObject.CreatePrimitive(fallbackPrimitive);
 
         go.name = "Target";
-        go.transform.position = GetRandomPointInArea();
 
         float min = Mathf.Min(targetScaleMin, targetScaleMax);
         float max = Mathf.Max(targetScaleMin, targetScaleMax);
         float scale = Random.Range(min, max);
         go.transform.localScale = Vector3.one * scale;
+
+        // Collider.bounds can be stale for the current frame right after scaling/instantiating.
+        // SyncTransforms ensures the physics representation matches the Transform so padding is correct.
+        Physics.SyncTransforms();
+
+        Vector3 padding = GetSpawnPadding(go);
+        go.transform.position = GetRandomPointInArea(padding);
 
         if (go.GetComponent<Target>() == null)
         {
@@ -182,14 +188,64 @@ public class TargetSpawner : MonoBehaviour
         }
     }
 
-    Vector3 GetRandomPointInArea()
+    Vector3 GetRandomPointInArea(Vector3 padding)
     {
         Vector3 half = areaSize * 0.5f;
+
+        float x = SampleAxis(half.x, padding.x);
+        float y = SampleAxis(half.y, padding.y);
+        float z = SampleAxis(half.z, padding.z);
+
         return new Vector3(
-            transform.position.x + Random.Range(-half.x, half.x),
-            transform.position.y + Random.Range(-half.y, half.y),
-            transform.position.z + Random.Range(-half.z, half.z)
+            transform.position.x + x,
+            transform.position.y + y,
+            transform.position.z + z
         );
+    }
+
+    static float SampleAxis(float halfExtent, float padding)
+    {
+        float usable = Mathf.Max(0f, halfExtent - Mathf.Max(0f, padding));
+        if (usable <= 0f)
+        {
+            return 0f;
+        }
+
+        return Random.Range(-usable, usable);
+    }
+
+    static Vector3 GetSpawnPadding(GameObject go)
+    {
+        Collider[] colliders = go.GetComponentsInChildren<Collider>();
+        bool hasBounds = false;
+        Bounds bounds = default(Bounds);
+
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider col = colliders[i];
+            if (col == null || !col.enabled)
+            {
+                continue;
+            }
+
+            if (!hasBounds)
+            {
+                bounds = col.bounds;
+                hasBounds = true;
+            }
+            else
+            {
+                bounds.Encapsulate(col.bounds);
+            }
+        }
+
+        if (hasBounds)
+        {
+            return bounds.extents;
+        }
+
+        Renderer renderer = go.GetComponentInChildren<Renderer>();
+        return renderer != null ? renderer.bounds.extents : Vector3.zero;
     }
 
     void CleanupDestroyedTargets()

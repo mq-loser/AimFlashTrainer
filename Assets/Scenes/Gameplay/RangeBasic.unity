@@ -264,7 +264,7 @@ MonoBehaviour:
   spawnWhilePaused: 0
   clearOnSessionReset: 1
   showIndicator: 1
-  minIntervalSeconds: 2.5
+  minIntervalSeconds: 3
   maxIntervalSeconds: 5
   fuseSeconds: 0.6
   minDistance: 6
@@ -276,7 +276,7 @@ MonoBehaviour:
   backFlashAngleDegrees: 80
   applyDistanceFalloff: 1
   indicatorPrefab: {fileID: 0}
-  indicatorColor: {r: 1, g: 0.9, b: 0.2, a: 1}
+  indicatorColor: {r: 0.8867924, g: 0, b: 0, a: 1}
   indicatorScale: 0.2
 --- !u!4 &252127314
 Transform:
@@ -589,7 +589,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 7
-  valorantSensitivity: 0.3
+  valorantSensitivity: 0.2
   valorantYawDegreesPerCount: 0.07
   mouseInputMultiplier: 1
   invertY: 0
@@ -674,11 +674,11 @@ MonoBehaviour:
   maxAliveTargets: 3
   spawnIntervalSeconds: 0.4
   targetLifetimeSeconds: 2
-  areaSize: {x: 20, y: 7, z: 1}
+  areaSize: {x: 2, y: 2, z: 0.5}
   targetPrefab: {fileID: 0}
   fallbackPrimitive: 0
   targetScaleMin: 0.35
-  targetScaleMax: 0.75
+  targetScaleMax: 0.35
 --- !u!4 &1624190358
 Transform:
   m_ObjectHideFlags: 0
@@ -688,7 +688,7 @@ Transform:
   m_GameObject: {fileID: 1624190356}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 3.5, z: 10.71}
+  m_LocalPosition: {x: 0, y: 1, z: 10.71}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
